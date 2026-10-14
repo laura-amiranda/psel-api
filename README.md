@@ -72,10 +72,11 @@ Retorna esta documentação em JSON, caso algum squad queira consultar os endpoi
    - "Add New" → "Project" → selecione este repositório.
    - Pode deixar todas as configurações como estão (a Vercel detecta sozinha que é um projeto de funções serverless). Clique em "Deploy".
 
-3. **Adicione o armazenamento (Vercel KV).**
+3. **Adicione o armazenamento (Upstash Redis, pelo marketplace da Vercel).**
    - Esse passo é obrigatório: sem ele, os dados não persistem entre chamadas, porque o disco das funções da Vercel não é permanente.
-   - No painel do projeto na Vercel, vá em **Storage** → **Create Database** → escolha **KV** (ou, dependendo do plano, aparece como "Upstash for Redis" no marketplace — é a mesma coisa, baseada em Redis).
-   - Depois de criado, clique em **Connect Project** e selecione este projeto. A Vercel adiciona sozinha as variáveis de ambiente necessárias (`KV_REST_API_URL`, `KV_REST_API_TOKEN` etc).
+   - No painel do projeto na Vercel, vá em **Storage** → **Create Database** (ou **Browse Storage**) → em "Marketplace Database Providers", escolha **Upstash** → **Redis**.
+   - Siga o assistente para criar o banco e, quando perguntar, selecione este projeto (`psel-api`) para conectar.
+   - A integração adiciona sozinha as variáveis de ambiente necessárias (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`).
    - Redeploy o projeto (Vercel → Deployments → ⋯ → Redeploy) para que as novas variáveis entrem em vigor.
 
 4. **Teste.** Acesse `https://seu-projeto.vercel.app/api` no navegador — deve aparecer a documentação em JSON. Depois teste um POST (pode usar o Postman, Insomnia, ou o próprio `fetch` no console do navegador).
@@ -83,11 +84,11 @@ Retorna esta documentação em JSON, caso algum squad queira consultar os endpoi
 5. **Passe a URL para os squads.** Algo como `https://seu-projeto.vercel.app/api/{squad}/{colecao}`.
 
 ### O plano gratuito é suficiente?
-Sim, para o volume de um processo seletivo (poucos squads, poucas semanas, uso em sala). O plano gratuito da Vercel KV tem um limite de requisições mensais bem acima do que o desafio deve gerar.
+Sim, para o volume de um processo seletivo (poucos squads, poucas semanas, uso em sala). O plano gratuito do Upstash tem um limite de requisições diárias bem acima do que o desafio deve gerar.
 
 ## Rodando localmente (antes de publicar)
 
-Não precisa de Vercel KV para testar localmente. Sem as variáveis de ambiente do KV configuradas, o projeto usa automaticamente um arquivo local (`/tmp/psel-api-dev-data.json`) só para fins de teste — isso nunca roda em produção.
+Não precisa do Upstash para testar localmente. Sem as variáveis de ambiente do banco configuradas, o projeto usa automaticamente um arquivo local (`/tmp/psel-api-dev-data.json`) só para fins de teste — isso nunca roda em produção.
 
 ```bash
 npm install

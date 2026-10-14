@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste da API — PSEL 27.1</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #2a2f3a;
+    --text: #e8eaed;
+    --muted: #9aa3b2;
+    --accent: #4f8cff;
+    --ok: #3ecf8e;
+    --err: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  h1 { font-size: 1.3rem; margin-bottom: 4px; }
+  p.sub { color: var(--muted); margin-top: 0; font-size: 0.95rem; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 18px;
+  }
+  .card h2 { font-size: 1rem; margin: 0 0 10px; }
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    width: 100%;
+  }
+  button:active { opacity: 0.85; }
+  button:disabled { opacity: 0.5; cursor: wait; }
+  .resultado {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #0b0d11;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 220px;
+    overflow: auto;
+  }
+  .status { margin-top: 10px; font-size: 0.9rem; }
+  .status.ok { color: var(--ok); }
+  .status.err { color: var(--err); }
+  .status.wait { color: var(--muted); }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+  input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #0b0d11;
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Teste da API do PSEL</h1>
+  <p class="sub">Confirma se a API está publicada e se os dados estão sendo salvos de verdade (banco conectado).</p>
+
+  <div class="card">
+    <h2>1. Criar um item de teste</h2>
+    <button id="btnCriar">Criar item</button>
+    <div id="statusCriar" class="status"></div>
+    <div id="resCriar" class="resultado" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Listar itens (confirma se salvou)</h2>
+    <button id="btnListar">Listar itens</button>
+    <div id="statusListar" class="status"></div>
+    <div id="resListar" class="resultado" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+  const colecao = 'teste/itens';
+
+  function setStatus(el, texto, tipo) {
+    el.textContent = texto;
+    el.className = 'status ' + (tipo || '');
+  }
+
+  function mostrarResultado(el, dado) {
+    el.style.display = 'block';
+    el.textContent = JSON.stringify(dado, null, 2);
+  }
+
+  document.getElementById('btnCriar').addEventListener('click', async () => {
+    const base = window.location.origin;
+    const btn = document.getElementById('btnCriar');
+    const status = document.getElementById('statusCriar');
+    const res = document.getElementById('resCriar');
+    btn.disabled = true;
+    setStatus(status, 'Enviando...', 'wait');
+    try {
+      const resp = await fetch(`${base}/api/${colecao}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: 'teste de deploy', criadoEm: new Date().toLocaleString('pt-BR') })
+      });
+      const dado = await resp.json();
+      if (!resp.ok) throw new Error(dado.erro || `Erro ${resp.status}`);
+      setStatus(status, '✅ Item criado com sucesso.', 'ok');
+      mostrarResultado(res, dado);
+    } catch (e) {
+      setStatus(status, '❌ Falhou: ' + e.message, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('btnListar').addEventListener('click', async () => {
+    const base = window.location.origin;
+    const btn = document.getElementById('btnListar');
+    const status = document.getElementById('statusListar');
+    const res = document.getElementById('resListar');
+    btn.disabled = true;
+    setStatus(status, 'Buscando...', 'wait');
+    try {
+      const resp = await fetch(`${base}/api/${colecao}`);
+      const dado = await resp.json();
+      if (!resp.ok) throw new Error(dado.erro || `Erro ${resp.status}`);
+      if (Array.isArray(dado) && dado.length > 0) {
+        setStatus(status, `✅ ${dado.length} item(ns) encontrado(s). O banco está salvando de verdade!`, 'ok');
+      } else {
+        setStatus(status, '⚠️ Lista vazia. Clique em "Criar item" primeiro, ou o banco ainda não está conectado.', 'err');
+      }
+      mostrarResultado(res, dado);
+    } catch (e) {
+      setStatus(status, '❌ Falhou: ' + e.message, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

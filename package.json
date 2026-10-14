@@ -1,0 +1,12 @@
+{
+  "name": "psel-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API genérica de coleções para o desafio do PSEL da Seed a Bit",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  }
+}
